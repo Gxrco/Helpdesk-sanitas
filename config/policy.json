@@ -1,0 +1,55 @@
+{
+  "organization": "Clínica UVG",
+  "service": "SANITAS",
+  "brand": "SANITAS Service Desk",
+  "timezone": "America/Guatemala",
+  "business_day_seconds": 45000,
+  "workdays": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+  "start_time": "08:00:00",
+  "end_time": "20:30:00",
+  "holiday_list": "SANITAS - Calendario UVG",
+  "holidays": [],
+  "modules": [
+    "Autenticación e inicio de sesión",
+    "Registro y búsqueda de pacientes",
+    "Vinculación de cuentas institucionales",
+    "Gestión de fichas médicas",
+    "Registro y actualización de antecedentes",
+    "Registro y consulta de visitas clínicas",
+    "Registro de diagnósticos y medicamentos",
+    "Exportación de consultas y estadísticas"
+  ],
+  "ticket_types": ["Incidente", "Solicitud de servicio", "Problema", "Cambio"],
+  "requester_roles": ["Médico", "Enfermería", "Recepción", "Administración"],
+  "statuses": [
+    {"name": "Nuevo", "category": "Open"},
+    {"name": "Registrado", "category": "Open"},
+    {"name": "En clasificación", "category": "Open"},
+    {"name": "En atención Nivel 1", "category": "Open"},
+    {"name": "Escalado funcionalmente", "category": "Open"},
+    {"name": "Escalado jerárquicamente", "category": "Open"},
+    {"name": "Esperando usuario", "category": "Paused"},
+    {"name": "En solución", "category": "Open"},
+    {"name": "Resuelto", "category": "Resolved"},
+    {"name": "Closed", "category": "Resolved"}
+  ],
+  "sla": [
+    {"impact": "Alto", "urgency": "Alta", "priority": "P1", "response": 900, "resolution": 14400},
+    {"impact": "Alto", "urgency": "Media", "priority": "P1", "response": 1800, "resolution": 28800},
+    {"impact": "Alto", "urgency": "Baja", "priority": "P2", "response": 3600, "resolution": 45000},
+    {"impact": "Medio", "urgency": "Alta", "priority": "P2", "response": 3600, "resolution": 45000},
+    {"impact": "Medio", "urgency": "Media", "priority": "P3", "response": 14400, "resolution": 90000},
+    {"impact": "Medio", "urgency": "Baja", "priority": "P3", "response": 45000, "resolution": 135000},
+    {"impact": "Bajo", "urgency": "Alta", "priority": "P3", "response": 45000, "resolution": 135000},
+    {"impact": "Bajo", "urgency": "Media", "priority": "P4", "response": 90000, "resolution": 225000},
+    {"impact": "Bajo", "urgency": "Baja", "priority": "P4", "response": 135000, "resolution": null}
+  ],
+  "users": [
+    {"email": "solicitante@sanitas.example", "name": "Solicitante Demo", "role": "HD Customer"},
+    {"email": "solicitante2@sanitas.example", "name": "Solicitante Dos", "role": "HD Customer"},
+    {"email": "nivel1@sanitas.example", "name": "Agente Nivel Uno", "role": "Agent", "team": "SANITAS Nivel 1"},
+    {"email": "nivel2@sanitas.example", "name": "Agente Nivel Dos", "role": "Agent", "team": "SANITAS Nivel 2"},
+    {"email": "nivel3@sanitas.example", "name": "Agente Nivel Tres", "role": "Agent", "team": "SANITAS Nivel 3"},
+    {"email": "responsable@sanitas.example", "name": "Responsable Servicio", "role": "Agent Manager", "team": "SANITAS Responsable"}
+  ]
+}
