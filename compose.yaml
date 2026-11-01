@@ -1,0 +1,152 @@
+name: ${COMPOSE_PROJECT_NAME:-sanitas}
+
+x-frappe: &frappe
+  image: ${HELPDESK_IMAGE:-ghcr.io/frappe/helpdesk:v1.31.0}
+  platform: ${FRAPPE_PLATFORM:-linux/amd64}
+  restart: unless-stopped
+  volumes:
+    - sites:/home/frappe/frappe-bench/sites
+    - logs:/home/frappe/frappe-bench/logs
+  depends_on:
+    configurator:
+      condition: service_completed_successfully
+
+services:
+  db:
+    image: mariadb:10.6.24
+    restart: unless-stopped
+    command: [--character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci, --skip-character-set-client-handshake]
+    environment:
+      MARIADB_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
+    secrets: [db_root_password]
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: [CMD, healthcheck.sh, --connect, --innodb_initialized]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  redis-cache:
+    image: redis:7.2.7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  redis-queue:
+    image: redis:7.2.7-alpine
+    restart: unless-stopped
+    command: [redis-server, --appendonly, 'yes']
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  configurator:
+    <<: *frappe
+    restart: 'no'
+    entrypoint: [bash, -ec]
+    command:
+      - |
+        ls -1 apps > sites/apps.txt
+        bench set-config -g db_host db
+        bench set-config -gp db_port 3306
+        bench set-config -g redis_cache redis://redis-cache:6379
+        bench set-config -g redis_queue redis://redis-queue:6379
+        bench set-config -g redis_socketio redis://redis-queue:6379
+        bench set-config -gp socketio_port 9000
+        bench set-config -gp server_script_enabled 1
+    depends_on:
+      db: {condition: service_healthy}
+      redis-cache: {condition: service_healthy}
+      redis-queue: {condition: service_healthy}
+
+  backend:
+    <<: *frappe
+    healthcheck:
+      test: [CMD, python, -c, "import socket; socket.create_connection(('127.0.0.1',8000),5).close()"]
+      interval: 15s
+      timeout: 6s
+      retries: 20
+      start_period: 30s
+
+  frontend:
+    <<: *frappe
+    command: [nginx-entrypoint.sh]
+    ports:
+      - '${BIND_ADDRESS:-127.0.0.1}:${HTTP_PORT:-8080}:8080'
+    environment:
+      BACKEND: backend:8000
+      SOCKETIO: websocket:9000
+      FRAPPE_SITE_NAME_HEADER: ${SITE_NAME:-helpdesk.localhost}
+      UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
+      PROXY_READ_TIMEOUT: '120'
+      CLIENT_MAX_BODY_SIZE: 10m
+    depends_on:
+      backend: {condition: service_healthy}
+      websocket: {condition: service_started}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/api/method/ping',timeout=5)"]
+      interval: 20s
+      timeout: 6s
+      retries: 15
+      start_period: 60s
+
+  websocket:
+    <<: *frappe
+    command: [node, /home/frappe/frappe-bench/apps/frappe/socketio.js]
+    healthcheck:
+      test: [CMD, python, -c, "import socket; socket.create_connection(('127.0.0.1',9000),5).close()"]
+      interval: 20s
+      timeout: 6s
+      retries: 10
+
+  queue-short:
+    <<: *frappe
+    command: [bench, worker, --queue, 'short,default']
+
+  queue-long:
+    <<: *frappe
+    command: [bench, worker, --queue, 'long,default,short']
+
+  scheduler:
+    <<: *frappe
+    command: [bench, schedule]
+
+  toolbox:
+    <<: *frappe
+    restart: 'no'
+    profiles: [tools]
+    working_dir: /home/frappe/frappe-bench
+    entrypoint: [python, /opt/sanitas/scripts/bench_task.py]
+    environment:
+      SITE_NAME: ${SITE_NAME:-helpdesk.localhost}
+      PUBLIC_URL: ${PUBLIC_URL:-http://helpdesk.localhost:8080}
+      PYTHONPATH: /opt/sanitas/scripts
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+      - .:/opt/sanitas:ro
+      - ./backups:/backup
+    secrets: [db_root_password, administrator_password, demo_password]
+
+secrets:
+  db_root_password:
+    file: ./.secrets/db_root_password
+  administrator_password:
+    file: ./.secrets/administrator_password
+  demo_password:
+    file: ./.secrets/demo_password
+
+volumes:
+  sites:
+  logs:
+  db-data:
+  redis-data:

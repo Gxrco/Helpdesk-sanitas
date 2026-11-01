@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+.secrets/
+backups/
+__pycache__/
+*.py[cod]
+.DS_Store
+.venv/
+.ruff_cache/
+docs/evidence/runtime-*
+!docs/evidence/runtime-example.md
+*.md
+!README.md
