@@ -53,7 +53,8 @@ def init():
         if not path.exists():
             # Directory is private; individual files must be readable by container UID 1000.
             fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
-            with os.fdopen(fd, "w") as handle:
+            # newline="\n": on Windows text mode would add "\r", which MariaDB keeps in the password.
+            with os.fdopen(fd, "w", newline="\n") as handle:
                 handle.write(secrets.token_urlsafe(32) + "\n")
     (ROOT / "backups").mkdir(mode=0o700, exist_ok=True)
     print(".env y secretos locales preparados; las contraseñas existentes se conservaron.")
