@@ -67,7 +67,7 @@ Las cuentas demo comparten una contraseña aleatoria local, distinta de Administ
 3. Clasificar y asignar agente/equipo. Para corregir prioridad activar **Corregir prioridad manualmente**, indicar prioridad y justificación. Sin esa opción la matriz prevalece al guardar.
 4. Para escalar, cambiar equipo y responsable, marcar estado de escalamiento y registrar motivo y diagnóstico.
 5. Al resolver, completar **Resolution Details / Resolución** y cambiar a Resuelto. Para cerrar, completar **Constancia de validación o espera hábil**, luego Closed. El solicitante también puede validar cerrando su ticket previamente resuelto.
-6. En Desk abrir `/app/dashboard/SANITAS%20Service%20Desk` como Administrator. Los agentes con acceso a Desk pueden acceder según los permisos del dashboard y de los tickets. Para revisar la configuración usar `/app/dashboard-chart`; los gráficos no tienen acceso público.
+6. En Desk abrir `/app/dashboard-view/SANITAS%20Service%20Desk` como Administrator. Los agentes con acceso a Desk pueden acceder según los permisos del dashboard y de los tickets. Para revisar la configuración usar `/app/dashboard-chart`; los gráficos no tienen acceso público.
 
 ## Arquitectura y versiones
 
