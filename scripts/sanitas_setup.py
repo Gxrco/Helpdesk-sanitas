@@ -207,6 +207,12 @@ def apply():
     p = policy()
     frappe.set_user("Administrator")
     frappe.get_single("System Settings").update({"time_zone": p["timezone"], "language": "es"}).save()
+    # Settings come from policy.json; otherwise the Desk setup wizard blocks every /app route.
+    frappe.db.set_single_value("System Settings", "setup_complete", 1)
+    frappe.db.set_value("Installed Application", {"app_name": ["in", ["frappe", "telephony", "helpdesk"]]},
+                        "is_setup_complete", 1)
+    # As the wizard does on completion; while "setup-wizard", Desk renders no navbar.
+    frappe.db.set_default("desktop:home_page", "workspace")
     custom_fields(p)
     for priority, level in zip(["P1", "P2", "P3", "P4"], ["Urgent", "High", "Medium", "Low"]):
         upsert("HD Ticket Priority", priority, {"level": level, "disabled": 0})
