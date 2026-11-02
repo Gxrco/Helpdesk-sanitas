@@ -163,16 +163,28 @@ def configure_slas(p):
 
 
 def configure_charts():
+    # Headline counts above the charts.
+    cards = []
+    for label, filters in [("Tickets", []), ("P1 abiertos", [["priority", "=", "P1"], ["status_category", "!=", "Resolved"]]),
+                           ("Incidentes", [["ticket_type", "=", "Incidente"]]),
+                           ("Solicitudes", [["ticket_type", "=", "Solicitud de servicio"]])]:
+        name = f"SANITAS - {label}"
+        upsert("Number Card", name, dict(label=name, type="Document Type", function="Count",
+            document_type="HD Ticket", is_public=0, show_percentage_stats=0,
+            filters_json=json.dumps([["HD Ticket", *f, False] for f in filters])))
+        cards.append({"card": name})
+    # Module is the service category (Phase 2, requirement 5): full width, donut legend shows whole names.
     charts = []
-    for label, field in [("Tipo", "ticket_type"), ("Módulo", "custom_module"),
-                         ("Prioridad", "priority"), ("Estado", "status"), ("SLA", "agreement_status")]:
+    for label, field, chart_type, width in [("Módulo", "custom_module", "Donut", "Full"),
+                                            ("Prioridad", "priority", "Bar", "Half"), ("Tipo", "ticket_type", "Bar", "Half"),
+                                            ("Estado", "status", "Bar", "Half"), ("SLA", "agreement_status", "Bar", "Half")]:
         name = f"SANITAS - {label}"
         upsert("Dashboard Chart", name, dict(chart_name=name, chart_type="Group By",
             document_type="HD Ticket", group_by_type="Count", group_by_based_on=field,
-            number_of_groups=20, type="Bar", is_public=0, timeseries=0,
+            number_of_groups=20, type=chart_type, is_public=0, timeseries=0,
             filters_json="[]", roles=[{"role": "Agent"}, {"role": "Agent Manager"}]))
-        charts.append({"chart": name, "width": "Half"})
-    upsert("Dashboard", "SANITAS Service Desk", dict(dashboard_name="SANITAS Service Desk", charts=charts))
+        charts.append({"chart": name, "width": width})
+    upsert("Dashboard", "SANITAS Service Desk", dict(dashboard_name="SANITAS Service Desk", cards=cards, charts=charts))
 
 
 def configure_statuses(p):
