@@ -187,6 +187,13 @@ def configure_charts():
     upsert("Dashboard", "SANITAS Service Desk", dict(dashboard_name="SANITAS Service Desk", cards=cards, charts=charts))
 
 
+def remove_welcome_ticket():
+    # Helpdesk's install sample has no SANITAS type or module and skews the charts.
+    for name in frappe.get_all("HD Ticket", {"subject": "Welcome to Helpdesk", "custom_demo_id": ["is", "not set"]},
+                               pluck="name"):
+        frappe.delete_doc("HD Ticket", name, ignore_permissions=True, force=True)
+
+
 def configure_statuses(p):
     for index, status in enumerate(p["statuses"], 1):
         color = "Green" if status["category"] == "Resolved" else "Blue"
@@ -246,6 +253,7 @@ def apply():
         script_type="DocType Event", reference_doctype="HD Ticket", doctype_event="Before Validate",
         disabled=0, script=(ROOT / "server_scripts/ticket_policy.py").read_text()))
     configure_maintenance_targets()
+    remove_welcome_ticket()
     configure_charts()
     frappe.db.commit()
     frappe.clear_cache()
